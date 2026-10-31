@@ -1,0 +1,24 @@
+name: CodeMi Helper problem
+description: The helper won't install, link, or turn Remote Control back on.
+labels: ["helper"]
+body:
+  - type: dropdown
+    id: os
+    attributes:
+      label: Computer
+      options: [macOS, Windows]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Helper version
+      description: Shown on the Computers page in CodeMi.
+      placeholder: "0.3.1"
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Paste what the installer printed if you have it. Never paste your pairing code (the long code in the install command).
+    validations:
+      required: true

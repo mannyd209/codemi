@@ -1,0 +1,15 @@
+name: Feature request
+description: An idea that would make CodeMi better.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like CodeMi to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: How would you use it?
+      description: The situation where you'd want this.

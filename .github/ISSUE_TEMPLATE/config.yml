@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Email MannyD Labs
+    url: mailto:info@mannydlabs.com
+    about: Questions that aren't a bug or a feature request.
+  - name: CodeMi Helper details and removal
+    url: https://mannydlabs.com/codemi-helper
+    about: What the helper does, checksums, and how to remove it.

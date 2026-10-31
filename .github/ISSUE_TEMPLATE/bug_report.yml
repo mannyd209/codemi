@@ -1,0 +1,34 @@
+name: Bug report
+description: Something in CodeMi isn't working.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options: [iPhone, iPad, iPhone Duo]
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: CodeMi version (menu → About), iOS version, and Kimi Code version on your computer.
+      placeholder: CodeMi 1.0, iOS 27.1, Kimi Code 1.2.0
+  - type: dropdown
+    id: computer
+    attributes:
+      label: Computer
+      options: [Mac, Windows, Both]
+  - type: textarea
+    id: screens
+    attributes:
+      label: Screenshots
+      description: Optional. Please hide anything private (project names, code, emails) before attaching.
