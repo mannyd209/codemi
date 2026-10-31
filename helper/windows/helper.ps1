@@ -13,7 +13,7 @@
 # "secret" alone is the 0.2 format, still read.
 
 $ErrorActionPreference = 'Stop'
-$HelperVersion = '0.3.1'
+$HelperVersion = '0.3.2'
 $HelperDir = if ($env:CODEMI_HELPER_DIR) { $env:CODEMI_HELPER_DIR } else { Join-Path $env:LOCALAPPDATA 'CodeMi Helper' }
 $ConfigPath = Join-Path $HelperDir 'config.json'
 $LogPath = Join-Path $HelperDir 'helper.log'
@@ -141,6 +141,8 @@ function Remove-Pairing([string]$Secret) {
 function Remove-Helper {
     Write-Log 'Removing the helper'
     try { Remove-ItemProperty -Path $RunKey -Name $RunValue -ErrorAction SilentlyContinue } catch {}
+    # PowerShell won't delete the folder it's working in.
+    try { Set-Location -Path ([IO.Path]::GetTempPath()) } catch {}
     try { Remove-Item -Path $HelperDir -Recurse -Force -ErrorAction SilentlyContinue } catch {}
     exit 0
 }
@@ -179,7 +181,11 @@ function Handle-Message($Conn, [string]$Text) {
         'uninstall' {
             Send-Message $Socket @{ type = 'result'; id = $message.id; ok = $true }
             Start-Sleep -Seconds 1
-            if (Remove-Pairing $Conn.Secret) {
+            # "all": the user chose to remove the helper from this computer for every device.
+            if ($message.all -eq $true) {
+                Write-Log 'A device removed the helper from this computer'
+                Remove-Helper
+            } elseif (Remove-Pairing $Conn.Secret) {
                 Write-Log 'A device unpaired; the helper keeps running for its other devices'
                 $Conn.Removed = $true
                 try { $Socket.Dispose() } catch {}
@@ -202,6 +208,7 @@ function New-Connection([string]$Secret) {
         Secret = $Secret; Socket = $null; Pending = $null
         Buffer = (New-Object byte[] 65536); Text = (New-Object System.Text.StringBuilder)
         Backoff = 2; RetryAt = [DateTime]::MinValue; Removed = $false
+        LastHeard = [DateTime]::MinValue; NextPing = [DateTime]::MinValue
     }
 }
 
@@ -218,6 +225,8 @@ function Open-Connection($Conn, [string]$Relay) {
     Write-Log 'Connected to relay'
     $Conn.Socket = $socket
     $Conn.Backoff = 2
+    $Conn.LastHeard = Get-Date
+    $Conn.NextPing = (Get-Date).AddSeconds($PingSeconds)
     [void]$Conn.Text.Clear()
     $status = Get-KimiStatus
     $script:LastSent = ($status | ConvertTo-Json -Compress)
@@ -233,6 +242,27 @@ function Close-Connection($Conn, [string]$Reason) {
     $Conn.Backoff = [Math]::Min($Conn.Backoff * 2, 300)
     $Conn.RetryAt = (Get-Date).AddSeconds($delay)
     Write-Log "Disconnected ($Reason); reconnecting in ${delay}s"
+}
+
+# Heartbeat: the relay answers each ping with a pong. A connection that hears nothing for
+# $SilentSeconds is dead (after sleep, or a network change, Windows can keep a socket that
+# looks open for hours) and is reopened.
+$PingSeconds = 25
+$SilentSeconds = 70
+
+function Check-Heartbeat($Conn) {
+    if (-not $Conn.Socket) { return }
+    $now = Get-Date
+    if (($now - $Conn.LastHeard).TotalSeconds -gt $SilentSeconds) {
+        Close-Connection $Conn 'no answer from the relay'
+        return
+    }
+    if ($now -ge $Conn.NextPing) {
+        $Conn.NextPing = $now.AddSeconds($PingSeconds)
+        $bytes = [Text.Encoding]::UTF8.GetBytes('{"type":"ping"}')
+        $segment = New-Object 'System.ArraySegment[byte]' -ArgumentList @(, $bytes)
+        $Conn.Socket.SendAsync($segment, [Net.WebSockets.WebSocketMessageType]::Text, $true, [Threading.CancellationToken]::None).Wait(10000) | Out-Null
+    }
 }
 
 # MARK: Main
@@ -259,45 +289,55 @@ Write-Log ("CodeMi Helper {0} starting with {1} pairing(s)" -f $HelperVersion, $
 $connections = @($pairings | ForEach-Object { New-Connection $_ })
 $nextCheck = (Get-Date).AddSeconds(20)
 while ($true) {
-    foreach ($conn in $connections) {
-        if (-not $conn.Removed -and -not $conn.Socket -and (Get-Date) -ge $conn.RetryAt) {
-            try { Open-Connection $conn $config.relay } catch { Close-Connection $conn $_.Exception.GetBaseException().Message }
+    # Nothing here may end the helper: a failure is logged and the loop carries on.
+    try {
+        foreach ($conn in $connections) {
+            if (-not $conn.Removed -and -not $conn.Socket -and (Get-Date) -ge $conn.RetryAt) {
+                try { Open-Connection $conn $config.relay } catch { Close-Connection $conn $_.Exception.GetBaseException().Message }
+            }
+            try { Check-Heartbeat $conn } catch { Close-Connection $conn $_.Exception.GetBaseException().Message }
         }
-    }
-    # Every 20 s: tell every pairing if Kimi Code's Remote Control state changed.
-    if ((Get-Date) -ge $nextCheck) {
-        $nextCheck = (Get-Date).AddSeconds(20)
-        $status = Get-KimiStatus
-        $json = $status | ConvertTo-Json -Compress
-        if ($json -ne $script:LastSent) {
-            $script:LastSent = $json
-            foreach ($conn in $connections) {
-                if ($conn.Socket) { try { Send-Message $conn.Socket @{ type = 'status'; status = $status } } catch {} }
+        # Every 20 s: tell every pairing if Kimi Code's Remote Control state changed.
+        if ((Get-Date) -ge $nextCheck) {
+            $nextCheck = (Get-Date).AddSeconds(20)
+            $status = Get-KimiStatus
+            $json = $status | ConvertTo-Json -Compress
+            if ($json -ne $script:LastSent) {
+                $script:LastSent = $json
+                foreach ($conn in $connections) {
+                    if ($conn.Socket) { try { Send-Message $conn.Socket @{ type = 'status'; status = $status } } catch {} }
+                }
             }
         }
-    }
-    $open = @($connections | Where-Object { $_.Pending })
-    if ($open.Count -eq 0) { Start-Sleep -Seconds 1; continue }
-    $tasks = [System.Threading.Tasks.Task[]]@($open | ForEach-Object { $_.Pending })
-    $index = [System.Threading.Tasks.Task]::WaitAny($tasks, 5000)
-    if ($index -lt 0) { continue }
-    $conn = $open[$index]
-    try {
-        $result = $conn.Pending.Result
+        $open = @($connections | Where-Object { $_.Pending })
+        if ($open.Count -eq 0) { Start-Sleep -Seconds 1; continue }
+        $tasks = [System.Threading.Tasks.Task[]]@($open | ForEach-Object { $_.Pending })
+        $index = [System.Threading.Tasks.Task]::WaitAny($tasks, 5000)
+        if ($index -lt 0) { continue }
+        $conn = $open[$index]
+        try {
+            $result = $conn.Pending.Result
+        } catch {
+            Close-Connection $conn $_.Exception.GetBaseException().Message
+            continue
+        }
+        if ($result.MessageType -eq [Net.WebSockets.WebSocketMessageType]::Close) {
+            Close-Connection $conn 'closed'
+            continue
+        }
+        $conn.LastHeard = Get-Date
+        [void]$conn.Text.Append([Text.Encoding]::UTF8.GetString($conn.Buffer, 0, $result.Count))
+        if ($result.EndOfMessage) {
+            $message = $conn.Text.ToString()
+            [void]$conn.Text.Clear()
+            try { Handle-Message $conn $message } catch { Write-Log "Message failed: $($_.Exception.Message)" }
+            # Turning Remote Control on can take a minute; that time doesn't count as silence.
+            $conn.LastHeard = Get-Date
+        }
+        if ($conn.Removed) { continue }
+        try { $conn.Pending = Receive-Start $conn.Socket $conn.Buffer } catch { Close-Connection $conn $_.Exception.GetBaseException().Message }
     } catch {
-        Close-Connection $conn $_.Exception.GetBaseException().Message
-        continue
+        Write-Log "Loop error: $($_.Exception.Message)"
+        Start-Sleep -Seconds 2
     }
-    if ($result.MessageType -eq [Net.WebSockets.WebSocketMessageType]::Close) {
-        Close-Connection $conn 'closed'
-        continue
-    }
-    [void]$conn.Text.Append([Text.Encoding]::UTF8.GetString($conn.Buffer, 0, $result.Count))
-    if ($result.EndOfMessage) {
-        $message = $conn.Text.ToString()
-        [void]$conn.Text.Clear()
-        try { Handle-Message $conn $message } catch { Write-Log "Message failed: $($_.Exception.Message)" }
-    }
-    if ($conn.Removed) { continue }
-    try { $conn.Pending = Receive-Start $conn.Socket $conn.Buffer } catch { Close-Connection $conn $_.Exception.GetBaseException().Message }
 }

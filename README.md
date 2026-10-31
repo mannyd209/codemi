@@ -89,7 +89,8 @@ If Remote Control gets switched off, or Kimi Code is closed or updated, your pho
 
 - **What it does, and nothing else:** keeps one outgoing connection to `relay.mannydlabs.com` per paired device, reads Kimi Code's Remote Control status, and turns it on (opening Kimi Code first if it was closed). It runs no other commands, reads none of your files, and needs no admin rights.
 - **How it's installed:** CodeMi never installs anything by itself. It puts a plain-text message in a Kimi Code session; you tap Send, and Kimi's agent shows each command and asks you to approve it.
-- **Several devices:** up to 8 iPhones and iPads can pair with the same computer. Removing it from one device only unpairs that device.
+- **Several devices:** up to 8 iPhones and iPads can pair with the same computer. **Unlink** stops just one device from using it; **Uninstall** removes it from the computer for all of them.
+- **Stays connected:** it notices a dropped connection (after sleep or a network change) and reconnects by itself. If it ever shows offline while the computer is awake, **Reconnect Helper** in Computers starts it again.
 - **Open source:** the helper and its installers are in [`helper/`](helper/) so you can read exactly what runs on your computer. Every download is checked against a SHA-256 that the app pins; see [mannydlabs.com/codemi-helper](https://mannydlabs.com/codemi-helper) for checksums and removal steps.
 
 ## Privacy

@@ -14,7 +14,7 @@
 
 import Foundation
 
-let helperVersion = "0.3.1"
+let helperVersion = "0.3.2"
 let home = FileManager.default.homeDirectoryForCurrentUser
 let kimiHome = home.appendingPathComponent(".kimi-code")
 let configURL = ProcessInfo.processInfo.environment["CODEMI_HELPER_CONFIG"].map { URL(fileURLWithPath: $0) }
@@ -140,6 +140,8 @@ final class RelayClient: NSObject, URLSessionWebSocketDelegate, @unchecked Senda
     var socket: URLSessionWebSocketTask?
     var lastSent: KimiStatus?
     var backoff: Double = 2
+    /// When the relay last answered a ping (nil until the first one goes out).
+    var lastPong: Date?
     /// This device removed the helper; the other pairings carry on without it.
     var removed = false
 
@@ -209,7 +211,11 @@ final class RelayClient: NSObject, URLSessionWebSocketDelegate, @unchecked Senda
             case "uninstall":
                 send(["type": "result", "id": id, "ok": true], on: task)
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
-                if Self.removePairing(secret) {
+                if message["all"] as? Bool == true {
+                    // The user chose to remove the helper from this computer for every device.
+                    log("A device removed the helper from this computer")
+                    Self.uninstallSelf()
+                } else if Self.removePairing(secret) {
                     log("A device unpaired; the helper keeps running for its other devices")
                     removed = true
                     socket = nil
@@ -263,7 +269,8 @@ final class RelayClient: NSObject, URLSessionWebSocketDelegate, @unchecked Senda
     }
 
     func reconnect(after reason: String) {
-        guard !removed else { return }
+        guard !removed, socket != nil else { return }
+        lastPong = nil
         socket?.cancel(with: .goingAway, reason: nil)
         socket = nil
         let delay = backoff + Double.random(in: 0...backoff / 2)
@@ -273,11 +280,26 @@ final class RelayClient: NSObject, URLSessionWebSocketDelegate, @unchecked Senda
     }
 
     /// Every 20 s: a free protocol ping keeps the connection alive, and a status message goes out
-    /// only when Kimi Code's Remote Control state has changed.
+    /// only when Kimi Code's Remote Control state has changed. A connection with no pong for 70 s
+    /// is dead (after sleep, or a network change, a socket can look open for hours) and reopens.
     func startTimers() {
         Timer.scheduledTimer(withTimeInterval: 20, repeats: true) { [weak self] _ in
             guard let self, let task = self.socket, task.state == .running else { return }
-            task.sendPing { error in if let error { log("Ping failed: \(error.localizedDescription)") } }
+            if let since = self.lastPong, Date().timeIntervalSince(since) > 70 {
+                self.reconnect(after: "no answer from the relay")
+                return
+            }
+            if self.lastPong == nil { self.lastPong = Date() }
+            task.sendPing { [weak self] error in
+                DispatchQueue.main.async {
+                    guard let self, task === self.socket else { return }
+                    if let error {
+                        self.reconnect(after: "ping failed: \(error.localizedDescription)")
+                    } else {
+                        self.lastPong = Date()
+                    }
+                }
+            }
             Task {
                 let status = await Kimi.status()
                 if status != self.lastSent {

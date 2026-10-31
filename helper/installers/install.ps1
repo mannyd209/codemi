@@ -40,27 +40,46 @@ if ($Secret -notmatch '^[A-Za-z0-9_-]{43}$') {
     return
 }
 
+# The version a helper script says it is, or $null.
+function Get-HelperVersion([string]$Path) {
+    try {
+        $line = Select-String -Path $Path -Pattern "^\`$HelperVersion = '([0-9.]+)'" | Select-Object -First 1
+        if ($line) { return $line.Matches[0].Groups[1].Value }
+    } catch {}
+    return $null
+}
+
 New-Item -ItemType Directory -Path $Dir -Force | Out-Null
-$download = Join-Path $env:TEMP ("codemi-helper-" + [Guid]::NewGuid().ToString('N') + '.ps1')
-Invoke-WebRequest -UseBasicParsing -Uri "$Relay/helper/windows/helper.ps1" -OutFile $download
 if ($Sha256) {
     $expected = $Sha256.Trim().ToLower()
 } else {
     $expected = ((Invoke-WebRequest -UseBasicParsing -Uri "$Relay/helper/windows/helper.sha256").Content -split '\s')[0].Trim().ToLower()
 }
-$actual = (Get-FileHash -Algorithm SHA256 -Path $download).Hash.ToLower()
-# An older CodeMi app pins the helper version it shipped with (newest first).
-foreach ($older in @('0.3.0', '0.2.1')) {
-    if ($actual -eq $expected) { break }
-    Invoke-WebRequest -UseBasicParsing -Uri "$Relay/helper/windows/$older/helper.ps1" -OutFile $download
+
+# Already installed and the exact version this CodeMi expects: nothing to download, only this
+# device's pairing to add. An older (or changed) copy is replaced.
+$download = $null
+$installed = if (Test-Path $Script) { (Get-FileHash -Algorithm SHA256 -Path $Script).Hash.ToLower() } else { $null }
+if ($installed -eq $expected) {
+    Write-Output "CodeMi Helper $(Get-HelperVersion $Script) is already installed and up to date (SHA-256 $installed). Linking this device."
+} else {
+    if ($installed) { Write-Output "CodeMi Helper $(Get-HelperVersion $Script) is installed; updating it." }
+    $download = Join-Path $env:TEMP ("codemi-helper-" + [Guid]::NewGuid().ToString('N') + '.ps1')
+    Invoke-WebRequest -UseBasicParsing -Uri "$Relay/helper/windows/helper.ps1" -OutFile $download
     $actual = (Get-FileHash -Algorithm SHA256 -Path $download).Hash.ToLower()
+    # An older CodeMi app pins the helper version it shipped with (newest first).
+    foreach ($older in @('0.3.1', '0.3.0', '0.2.1')) {
+        if ($actual -eq $expected) { break }
+        Invoke-WebRequest -UseBasicParsing -Uri "$Relay/helper/windows/$older/helper.ps1" -OutFile $download
+        $actual = (Get-FileHash -Algorithm SHA256 -Path $download).Hash.ToLower()
+    }
+    if ($actual -ne $expected) {
+        Remove-Item $download -Force -ErrorAction SilentlyContinue
+        Write-Error "Download check failed (SHA-256 $actual, expected $expected); nothing was installed."
+        return
+    }
+    Write-Output "Helper $(Get-HelperVersion $download) download verified (SHA-256 $actual)."
 }
-if ($actual -ne $expected) {
-    Remove-Item $download -Force -ErrorAction SilentlyContinue
-    Write-Error "Download check failed (SHA-256 $actual, expected $expected); nothing was installed."
-    return
-}
-Write-Output "Helper download verified (SHA-256 $actual)."
 
 
 # Keep the pairings other iPhones and iPads already have: this one first, then up to 7 earlier ones.
@@ -76,19 +95,30 @@ try {
 Stop-Helper
 # A fresh log, so the check below only counts the new helper connecting.
 Remove-Item -Path (Join-Path $Dir 'helper.log') -Force -ErrorAction SilentlyContinue
-Move-Item -Path $download -Destination $Script -Force
+if ($download) { Move-Item -Path $download -Destination $Script -Force }
 @{ relay = $Relay; secret = $Secret; secrets = $pairings.ToArray() } | ConvertTo-Json -Compress | Set-Content -Path (Join-Path $Dir 'config.json') -Encoding ASCII
 
 $command = "powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$Script`""
 New-Item -Path $RunKey -Force | Out-Null
 Set-ItemProperty -Path $RunKey -Name $RunValue -Value $command
-Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-File', "`"$Script`"")
+# Started through WMI, not as a child of this shell: Kimi Code ends every program its agent
+# started when Kimi Code quits or updates, and the helper has to outlive that (it's what turns
+# Remote Control back on afterwards).
+$started = $false
+try {
+    $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
+    $created = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $command; ProcessStartupInformation = $startup }
+    $started = $created.ReturnValue -eq 0
+} catch {}
+if (-not $started) {
+    Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-File', "`"$Script`"")
+}
 
 $log = Join-Path $Dir 'helper.log'
 for ($i = 0; $i -lt 20; $i++) {
     Start-Sleep -Seconds 1
     if ((Test-Path $log) -and (Select-String -Path $log -Pattern 'Connected to relay' -Quiet)) {
-        Write-Output 'CodeMi Helper installed and running. You can turn Remote Control back on from the CodeMi app.'
+        Write-Output "CodeMi Helper $(Get-HelperVersion $Script) is installed, running and linked. You can turn Remote Control back on from the CodeMi app."
         return
     }
 }

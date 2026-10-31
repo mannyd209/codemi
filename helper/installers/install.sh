@@ -46,7 +46,7 @@ else
 fi
 ACTUAL="$(shasum -a 256 "$TMP/helper.zip" | cut -d' ' -f1)"
 # An older CodeMi app pins the helper version it shipped with (newest first).
-for OLDER in 0.3.0 0.2.1; do
+for OLDER in 0.3.1 0.3.0 0.2.1; do
   [ "$ACTUAL" = "$EXPECTED" ] && break
   curl -fsSL "$RELAY/helper/mac/$OLDER/codemi-helper.zip" -o "$TMP/helper.zip"
   ACTUAL="$(shasum -a 256 "$TMP/helper.zip" | cut -d' ' -f1)"
@@ -59,6 +59,16 @@ echo "Helper download verified (SHA-256 $ACTUAL)."
 
 ditto -x -k "$TMP/helper.zip" "$TMP/unzipped"
 codesign --verify --strict "$TMP/unzipped/codemi-helper"
+
+# Already installed and identical to the verified download: nothing to replace, only this
+# device's pairing to add. An older copy is updated.
+if [ -f "$DIR/codemi-helper" ] && cmp -s "$DIR/codemi-helper" "$TMP/unzipped/codemi-helper"; then
+  echo "CodeMi Helper is already installed and up to date. Linking this device."
+  UP_TO_DATE=1
+else
+  [ -f "$DIR/codemi-helper" ] && echo "An older CodeMi Helper is installed; updating it."
+  UP_TO_DATE=0
+fi
 
 # Keep the pairings other iPhones and iPads already have (pairing codes are 43 characters):
 # this one first, then up to 7 earlier ones.
@@ -74,7 +84,7 @@ launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 pkill -f "$DIR/codemi-helper" 2>/dev/null || true
 # A fresh log, so the check below only counts the new helper connecting.
 : > "$LOG"
-mv -f "$TMP/unzipped/codemi-helper" "$DIR/codemi-helper"
+[ "$UP_TO_DATE" = 1 ] || mv -f "$TMP/unzipped/codemi-helper" "$DIR/codemi-helper"
 umask 077
 printf '{"relay":"%s","secret":"%s","secrets":[%s]}\n' "$RELAY" "$SECRET" "$LIST" > "$DIR/config.json"
 umask 022
@@ -99,7 +109,7 @@ launchctl bootstrap "gui/$(id -u)" "$PLIST"
 i=0
 while [ $i -lt 20 ]; do
   if grep -q "Connected to relay" "$LOG" 2>/dev/null; then
-    echo "CodeMi Helper installed and running. You can turn Remote Control back on from the CodeMi app."
+    echo "CodeMi Helper is installed, running and linked. You can turn Remote Control back on from the CodeMi app."
     exit 0
   fi
   sleep 1

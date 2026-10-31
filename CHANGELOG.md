@@ -13,6 +13,7 @@ The first release.
 
 ## CodeMi Helper
 
+- **0.3.2:** stays connected: notices a dropped connection (after sleep or a network change) and reconnects by itself. On Windows it keeps running when Kimi Code quits or updates. Can be unlinked from one device or uninstalled from the computer for all devices. The installer only links your device when the helper is already up to date.
 - **0.3.1:** removing the helper from one device only unpairs that device; the helper keeps working for your others.
 - **0.3.0:** works with several iPhones and iPads at once (up to 8).
 - **0.2.1:** first public helper for macOS and Windows.
