@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://apps.apple.com/app/id6828491801"><img src="https://tools.applemarketingtools.com/api/badges/download-on-the-app-store/black/en-us" alt="Download on the App Store" height="54"></a>
   &nbsp;&nbsp;
-  <a href="https://mannydlabs.com/donate"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-%E2%98%95-FFDD00?style=for-the-badge&labelColor=1a1a1a" alt="Buy me a coffee" height="54"></a>
+  <a href="https://ko-fi.com/mannydlabs"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-%E2%98%95-FFDD00?style=for-the-badge&labelColor=1a1a1a" alt="Buy me a coffee" height="54"></a>
 </p>
 
 <p align="center">
@@ -103,7 +103,7 @@ Found a bug or have an idea? [Open an issue](https://github.com/mannyd209/codemi
 
 ## Support CodeMi
 
-CodeMi is free, with no ads, no subscriptions and no tracking. It's built during a lot of late nights. If it saves you time, [a coffee](https://mannydlabs.com/donate) keeps the big updates coming, and a ⭐ on this repo helps other developers find it.
+CodeMi is free, with no ads, no subscriptions and no tracking. It's built during a lot of late nights. If it saves you time, [a coffee](https://ko-fi.com/mannydlabs) keeps the big updates coming, and a ⭐ on this repo helps other developers find it.
 
 ---
 
