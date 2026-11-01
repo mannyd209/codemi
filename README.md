@@ -101,6 +101,10 @@ CodeMi collects no data. Your computers, labels and Kimi sign-ins stay on your d
 
 Found a bug or have an idea? [Open an issue](https://github.com/mannyd209/codemi/issues/new/choose). You can also email info@mannydlabs.com. What's new in each version is in the [changelog](CHANGELOG.md).
 
+## More from MannyD Labs
+
+**Use Claude Code too?** [Remote Keeper](https://github.com/mannyd209/remote-keeper) keeps your Claude Code sessions reachable from your phone. When the Claude desktop app restarts or updates, Remote Control switches off for every session; Remote Keeper alerts you and turns it back on with one tap. Free and open source, for Mac and iPhone: [mannydlabs.com/remote-keeper](https://mannydlabs.com/remote-keeper).
+
 ## Support CodeMi
 
 CodeMi is free, with no ads, no subscriptions and no tracking. It's built during a lot of late nights. If it saves you time, [a coffee](https://ko-fi.com/mannydlabs) keeps the big updates coming, and a ⭐ on this repo helps other developers find it.
