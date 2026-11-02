@@ -103,7 +103,7 @@ Found a bug or have an idea? [Open an issue](https://github.com/mannyd209/codemi
 
 ## More from MannyD Labs
 
-**Use Claude Code too?** [Remote Keeper](https://github.com/mannyd209/remote-keeper) keeps your Claude Code sessions reachable from your phone. When the Claude desktop app restarts or updates, Remote Control switches off for every session; Remote Keeper alerts you and turns it back on with one tap. Free and open source, for Mac and iPhone: [mannydlabs.com/remote-keeper](https://mannydlabs.com/remote-keeper).
+**Use Claude Code too?** [Remote Keeper](https://apps.apple.com/us/app/remote-keeper/id6829386828) keeps your Claude Code sessions reachable from your phone. When the Claude desktop app restarts or updates, Remote Control switches off for every session; Remote Keeper alerts you and turns it back on with one tap. Free for Mac (open source) and iPhone ([on the App Store](https://apps.apple.com/us/app/remote-keeper/id6829386828)): [mannydlabs.com/remote-keeper](https://mannydlabs.com/remote-keeper).
 
 ## Support CodeMi
 
