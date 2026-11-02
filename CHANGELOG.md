@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0 (iPhone, iPad and iPhone Duo)
+## 1.0 (iPhone, iPad and iPhone Duo), released November 2, 2026
 
-The first release.
+The first release, [now on the App Store](https://apps.apple.com/us/app/codemi-kimi-code-remote/id6828491801).
 
 - **Remote for Kimi Code:** full-screen, edge-to-edge remote for the Kimi Code agent on your Mac or PC.
 - **Connect in seconds:** scan Kimi Code's QR code or paste its Remote Control link.
