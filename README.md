@@ -97,6 +97,8 @@ If Remote Control gets switched off, or Kimi Code is closed or updated, your pho
 
 CodeMi collects no data. Your computers, labels and Kimi sign-ins stay on your devices and in your own iCloud Keychain. Your password goes into Kimi's own sign-in page, never into CodeMi. The helper's relay stores only whether Kimi Code is running and whether Remote Control is on, under a random identifier; it never sees your sessions, prompts or files. Full policy: [mannydlabs.com/codemi_legal](https://mannydlabs.com/codemi_legal).
 
+Want it locked too? Turn on App Lock in Computers and CodeMi asks for Face ID, Touch ID or your passcode (right away, or after 1 to 10 minutes away), and hides its screen in the app switcher.
+
 ## Feedback
 
 Found a bug or have an idea? [Open an issue](https://github.com/mannyd209/codemi/issues/new/choose). You can also email info@mannydlabs.com. What's new in each version is in the [changelog](CHANGELOG.md).
