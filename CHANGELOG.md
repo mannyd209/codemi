@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1, released November 3, 2026
+
+- **App Lock:** lock CodeMi with Face ID, Touch ID or your passcode, asked right away or after 1, 3, 5 or 10 minutes away. While it's on, CodeMi also hides its screen in the app switcher. Turn it on in Computers.
+- **Fits large text:** the buttons on a computer's card wrap onto two lines at big text sizes instead of squeezing together.
+- **New home:** [mannydlabs.com/codemi](https://mannydlabs.com/codemi), linked from About.
+- **More from MannyD Labs:** About links to [Remote Keeper for Claude Code](https://apps.apple.com/us/app/remote-keeper-for-claude-code/id6829386828), a free app that turns Remote Control back on for Claude Code sessions.
+
 ## 1.0 (iPhone, iPad and iPhone Duo), released November 2, 2026
 
 The first release, [now on the App Store](https://apps.apple.com/us/app/codemi-kimi-code-remote/id6828491801).
