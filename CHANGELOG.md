@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2, in App Review
+
+- **Kimi Code updates:** each computer shows its Kimi Code version. When an update is ready, tap Install Now and CodeMi restarts Kimi Code, installs it and turns Remote Control back on. Read What's New first, or choose Later.
+- **Update notifications:** CodeMi can tell you when a Kimi Code update is ready, with Install Now right in the notification.
+- **Keep Remote Control on:** turns Remote Control back on by itself after Kimi Code updates or restarts. On by default, per computer.
+- **Kimi usage:** your 5-hour, weekly and monthly limits, with reset times, on each computer.
+- Needs CodeMi Helper 0.4.2; CodeMi offers the update on the computer's card.
+
 ## 1.1, released November 3, 2026
 
 - **App Lock:** lock CodeMi with Face ID, Touch ID or your passcode, asked right away or after 1, 3, 5 or 10 minutes away. While it's on, CodeMi also hides its screen in the app switcher. Turn it on in Computers.
@@ -20,6 +28,9 @@ The first release, [now on the App Store](https://apps.apple.com/us/app/codemi-k
 
 ## CodeMi Helper
 
+- **0.4.2:** Install Now no longer gets stuck on Kimi Code's "Quit Kimi Code?" question: the helper turns Remote Control off first so Kimi Code can quit, then turns it back on after the update.
+- **0.4.1:** Kimi Code version, update checks, Install Now, Keep Remote Control on, and update notifications (Mac and Windows).
+- **0.4.0:** Kimi plan usage (5-hour, weekly, monthly) on each computer.
 - **0.3.2:** stays connected: notices a dropped connection (after sleep or a network change) and reconnects by itself. On Windows it keeps running when Kimi Code quits or updates. Can be unlinked from one device or uninstalled from the computer for all devices. The installer only links your device when the helper is already up to date.
 - **0.3.1:** removing the helper from one device only unpairs that device; the helper keeps working for your others.
 - **0.3.0:** works with several iPhones and iPads at once (up to 8).

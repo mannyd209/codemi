@@ -68,7 +68,7 @@ if ($installed -eq $expected) {
     Invoke-WebRequest -UseBasicParsing -Uri "$Relay/helper/windows/helper.ps1" -OutFile $download
     $actual = (Get-FileHash -Algorithm SHA256 -Path $download).Hash.ToLower()
     # An older CodeMi app pins the helper version it shipped with (newest first).
-    foreach ($older in @('0.3.1', '0.3.0', '0.2.1')) {
+    foreach ($older in @('0.3.2', '0.3.1', '0.3.0', '0.2.1')) {
         if ($actual -eq $expected) { break }
         Invoke-WebRequest -UseBasicParsing -Uri "$Relay/helper/windows/$older/helper.ps1" -OutFile $download
         $actual = (Get-FileHash -Algorithm SHA256 -Path $download).Hash.ToLower()

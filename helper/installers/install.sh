@@ -46,7 +46,7 @@ else
 fi
 ACTUAL="$(shasum -a 256 "$TMP/helper.zip" | cut -d' ' -f1)"
 # An older CodeMi app pins the helper version it shipped with (newest first).
-for OLDER in 0.3.1 0.3.0 0.2.1; do
+for OLDER in 0.3.2 0.3.1 0.3.0 0.2.1; do
   [ "$ACTUAL" = "$EXPECTED" ] && break
   curl -fsSL "$RELAY/helper/mac/$OLDER/codemi-helper.zip" -o "$TMP/helper.zip"
   ACTUAL="$(shasum -a 256 "$TMP/helper.zip" | cut -d' ' -f1)"

@@ -74,6 +74,18 @@ Plug in a keyboard and mouse and it feels like coding at your computer at home. 
 ### Every computer, every account
 Link as many Macs and Windows PCs as you like, on one Kimi account or several. Each account keeps its own sign-in, so switching computers never asks you to sign in again. Label accounts Work, Personal or Hobby, pick a color, and everything syncs through iCloud to your other devices.
 
+### Kimi Code updates and usage (new in 1.2)
+With the helper, each computer shows its Kimi Code version and your Kimi plan usage: the 5-hour, weekly and monthly limits, with reset times.
+
+- **Update ready?** Read What's New (Kimi's own changelog), then tap **Install Now**. CodeMi restarts Kimi Code, installs the update Kimi Code already downloaded, and turns Remote Control back on. Works on Mac and Windows.
+- **Notifications:** CodeMi tells you when an update is ready, with Install Now right in the notification.
+- **Keep Remote Control on:** turns Remote Control back on by itself after Kimi Code updates or restarts. On by default, per computer.
+
+<p>
+  <img src="docs/screenshots/iphone-05-kimi-update.jpg" width="32%">
+  <img src="docs/screenshots/iphone-02-computers.jpg" width="32%">
+</p>
+
 ## Getting started
 
 1. On your computer, open **Kimi Code** and sign in with the **kimi.ai** login.
@@ -87,7 +99,7 @@ Link as many Macs and Windows PCs as you like, on one Kimi account or several. E
 
 If Remote Control gets switched off, or Kimi Code is closed or updated, your phone can't reach your computer anymore. The optional **CodeMi Helper** lets CodeMi turn it back on with one tap.
 
-- **What it does, and nothing else:** keeps one outgoing connection to `relay.mannydlabs.com` per paired device, reads Kimi Code's Remote Control status, and turns it on (opening Kimi Code first if it was closed). It runs no other commands, reads none of your files, and needs no admin rights.
+- **What it does, and nothing else:** keeps one outgoing connection to `relay.mannydlabs.com` per paired device, reads Kimi Code's Remote Control status and turns it on (opening Kimi Code first if it was closed), reads your Kimi usage, checks Kimi Code's own update feed, and installs a downloaded Kimi Code update when you tap Install Now. It runs no other commands, reads none of your files, and needs no admin rights.
 - **How it's installed:** CodeMi never installs anything by itself. It puts a plain-text message in a Kimi Code session; you tap Send, and Kimi's agent shows each command and asks you to approve it.
 - **Several devices:** up to 8 iPhones and iPads can pair with the same computer. **Unlink** stops just one device from using it; **Uninstall** removes it from the computer for all of them.
 - **Stays connected:** it notices a dropped connection (after sleep or a network change) and reconnects by itself. If it ever shows offline while the computer is awake, **Reconnect Helper** in Computers starts it again.
@@ -95,7 +107,7 @@ If Remote Control gets switched off, or Kimi Code is closed or updated, your pho
 
 ## Privacy
 
-CodeMi collects no data. Your computers, labels and Kimi sign-ins stay on your devices and in your own iCloud Keychain. Your password goes into Kimi's own sign-in page, never into CodeMi. The helper's relay stores only whether Kimi Code is running and whether Remote Control is on, under a random identifier; it never sees your sessions, prompts or files. Full policy: [mannydlabs.com/codemi_legal](https://mannydlabs.com/codemi_legal).
+CodeMi collects no data. Your computers, labels and Kimi sign-ins stay on your devices and in your own iCloud Keychain. Your password goes into Kimi's own sign-in page, never into CodeMi. The helper's relay stores only whether Kimi Code is running and whether Remote Control is on, under a random identifier, plus your device's push token if you turn on update notifications; it never sees your sessions, prompts or files. Full policy: [mannydlabs.com/codemi_legal](https://mannydlabs.com/codemi_legal).
 
 Want it locked too? Turn on App Lock in Computers and CodeMi asks for Face ID, Touch ID or your passcode (right away, or after 1 to 10 minutes away), and hides its screen in the app switcher.
 
